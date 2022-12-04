@@ -1,3 +1,4 @@
+   
 
 fun parseBounds s : int*int*int*int =
    let
@@ -29,29 +30,48 @@ fun parseBounds s : int*int*int*int =
        | SOME bounds => bounds
    end
 
-fun contained s : int = 
-   let 
-      val (a,b,c,d) = parseBounds s
-   in
-      if a>=c andalso b<=d then 1 else
-      if a<=c andalso b>=d then 1 else 0
-   end
 
-fun doline stream sum : int =
+fun readLines (filename : string) : string list =
    let 
-      val line = TextIO.inputLine stream 
+      fun doline stream : string list =
+         case TextIO.inputLine stream of
+            SOME line => line :: doline stream
+          | NONE => nil
    in
-      case line of
-         SOME text => doline stream ((contained text) + sum)
-       | NONE => sum
-   end
-
-fun part1 () : unit =
-   let 
-      val ins = TextIO.openIn "input4.txt" 
-   in
-      TextIO.print (Int.toString (doline ins 0))
+      doline (TextIO.openIn filename)
    end
 
 
+fun readInput (filename : string) : (int*int*int*int) list =
+   map parseBounds (readLines filename)
 
+
+fun reduce (unit, opn, nil) =
+    unit
+  | reduce (unit, opn, h::t) =
+    opn (h, reduce (unit, opn, t))
+
+
+fun contained (a,b,c,d) : int = 
+   if a>=c andalso b<=d then 1 else
+   if a<=c andalso b>=d then 1 else 0
+
+
+fun part1 () : int =
+   let 
+      val input = readInput "input4.txt" 
+   in
+      reduce (0, op +, (map contained input))
+   end
+
+
+fun overlap (a,b,c,d) : int = 
+   if a<=d andalso c<=b then 1 else 0
+
+
+fun part2 () : int =
+   let 
+      val input = readInput "input4.txt" 
+   in
+      reduce (0, op +, (map overlap input))
+   end
